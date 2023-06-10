@@ -1,0 +1,2 @@
+# isMyModUpdated
+checks minecraft mods
