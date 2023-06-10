@@ -1,0 +1,48 @@
+<html>
+<head>
+    <title>Mods</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"
+		    integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
+		    crossorigin="anonymous"></script>
+</head>
+<body>
+    <form method="POST" action="/update">
+        <input type="text" name="modIdentifier" placeholder="Mod Identifier" required>
+        <button type="submit">Add Mod</button>
+    </form>
+
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Current Version</th>
+            <th>Last Updated</th>
+            <th>Categories</th>
+            <th>Actions</th>
+        </tr>
+        {% for modIdentifier, mod in mods %}
+            <tr>
+                <td>{{ mod.title }}</td>
+                <td>{{ mod.game_versions|last }}</td>
+                <td id="lastUpdated">{{ mod.updated }}</td>
+                <td>{{ mod.categories.join(', ') }}</td>
+                <td>
+                    <form method="POST" action="/update">
+                        <input type="hidden" name="modIdentifier" value="{{ modIdentifier }}">
+                        <button type="submit">Update</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
+
+<script>
+    $(document).ready(function() {
+        $('#lastUpdated').each(function() {
+            var date = moment($(this).text());
+            $(this).text(date.fromNow());
+        });
+    });
+</script>
