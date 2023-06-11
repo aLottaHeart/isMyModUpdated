@@ -1,48 +1,147 @@
-<html>
-<head>
-    <title>Mods</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"
-		    integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
-		    crossorigin="anonymous"></script>
-</head>
-<body>
-    <form method="POST" action="/update">
-        <input type="text" name="modIdentifier" placeholder="Mod Identifier" required>
-        <button type="submit">Add Mod</button>
-    </form>
+<html lang="en" data-bs-theme="dark">
 
-    <table>
-        <tr>
-            <th>Name</th>
-            <th>Current Version</th>
-            <th>Last Updated</th>
-            <th>Categories</th>
-            <th>Actions</th>
-        </tr>
-        {% for modIdentifier, mod in mods %}
-            <tr>
-                <td>{{ mod.title }}</td>
-                <td>{{ mod.game_versions|last }}</td>
-                <td id="lastUpdated">{{ mod.updated }}</td>
-                <td>{{ mod.categories.join(', ') }}</td>
-                <td>
-                    <form method="POST" action="/update">
-                        <input type="hidden" name="modIdentifier" value="{{ modIdentifier }}">
-                        <button type="submit">Update</button>
-                    </form>
-                </td>
-            </tr>
-        {% endfor %}
-    </table>
-</body>
-</html>
+	<head>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+		<script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+		<title>Mods</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+	</head>
 
-<script>
-    $(document).ready(function() {
-        $('#lastUpdated').each(function() {
-            var date = moment($(this).text());
-            $(this).text(date.fromNow());
-        });
+	<body>
+		<div class="container text-center">
+			<div class="row justify-content-md-center">
+				<div class="py-3">
+					<h1>Mods</h1>
+				</div>
+				<div class="py-3 col-4">
+					<form method="POST" action="/update">
+						<div class="input-group mb-3">
+							<input type="text" class="form-control" placeholder="enter mod id" name="modIdentifier" required>
+							<button class="btn btn-outline-secondary" type="submit">Add Mod</button>
+						</div>
+					</form>
+				</div>
+                <div class="col-12"></div>
+
+				<div class="py-3 col-8">
+                <table class="table table-striped text-center">
+					<tr>
+						<th scope="col" class="alphanumericSort">Name</th>
+						<th scope="col" class="alphanumericSort">Latest Version</th>
+						<th scope="col" class="alphanumericSort">Updated</th>
+						<th scope="col" class="alphanumericSort">Categories</th>
+						<th scope="col"></th>
+					</tr>
+					{% for modIdentifier, mod in mods %}
+						<tr>
+							<th scope="row">{{ mod.title }}</td>
+							<td>
+                                {% set break = false %}
+                                {% for version in ['1.20', '1.19.4', '1.19.3', '1.19.2', '1.19'] if not break %}
+                                    {% if version in mod.game_versions %}
+                                        {{ version }}
+                                        {% set break = true %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if not break %}
+                                    {{ mod.game_versions|last }}
+                                {% endif %}
+                            </td>
+							<td class="lastUpdated">{{ mod.updated }}</td>
+							<td>{{ mod.categories.join(', ') }}</td>
+							<td>
+								<form method="POST" action="/update">
+									<input type="hidden" name="modIdentifier" value="{{ modIdentifier }}">
+									<button class="btn btn-sm" type="submit">↺</button>
+								</form>
+							</td>
+						</tr>
+					{% endfor %}
+				</table>
+                </div>
+			</div>
+		</div>
+	</body>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+	<script>
+$(document).ready(function () {
+
+    $('.lastUpdated').each(function () {
+        var date = moment($(this).text());
+        $(this).text(date.fromNow());
     });
-</script>
+
+    $('.numericSort').click(function (event) {
+        tableSort(event.target, true);
+    })
+
+    $('.alphanumericSort').click(function (event) {
+        tableSort(event.target, false);
+    })
+
+    function tableSort(target, isNumeric) {
+        let rows, i, x, y, shouldSwitch;
+        let table = target.closest('table');
+
+        let switchCount = 0;
+        let switching = true;
+
+        let dir = "asc";
+
+        while (switching) {
+            switching = false;
+            rows = table.rows;
+
+            for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+
+                x = rows[i].getElementsByTagName("td")[target.cellIndex];
+                y = rows[i + 1].getElementsByTagName("td")[target.cellIndex];
+
+                // if rows are numeric
+                // if rows are alphanumeric
+                if (dir === "asc") {
+                    if (isNumeric) {
+                        if (Number(x.innerHTML) > Number(y.innerHTML)) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+
+                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                } else if (dir === "desc") {
+                    if (isNumeric) {
+                        if (Number(x.innerHTML) < Number(y.innerHTML)) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+
+                    if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+            }
+
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                switchCount++;
+            } else {
+                if (switchCount === 0 && dir === "asc") {
+                    dir = "desc";
+                    switching = true;
+                }
+            }
+        }
+    }
+});
+	</script>
+</html>
